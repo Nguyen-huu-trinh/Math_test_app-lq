@@ -1,23 +1,67 @@
-export default function Page() {
+import Link from "next/link"
+import { Plus, GraduationCap } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { ExamCard } from "@/components/exam-card"
+import { getExams, getResultsForExam } from "@/lib/data"
+
+export const dynamic = "force-dynamic"
+
+export default async function DashboardPage() {
+  const exams = await getExams()
+  const examsWithResults = await Promise.all(
+    exams.map(async (exam) => ({
+      exam,
+      results: await getResultsForExam(exam.id),
+    })),
+  )
+
   return (
-    <main className="relative flex min-h-screen items-center justify-center bg-[color:light-dark(#fff,#000)] text-[color:light-dark(#000,#fff)]">
-      <svg
-        aria-hidden="true"
-        className="size-20"
-        fill="none"
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-        stroke="currentColor"
-        strokeWidth="0.5"
-      >
-        <path
-          d="M14.2 14.2H17V6.9375C17 4.76288 15.2371 3 13.0625 3H5.8V5.8M14.2 14.2V7.79063L7.79062 14.2H14.2ZM14.2 14.2V17H6.9375C4.76288 17 3 15.2371 3 13.0625V5.8H5.8M5.8 5.8V12.2313L12.2313 5.8H5.8Z"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <p className="absolute left-1/2 top-[calc(50%+56px)] -translate-x-1/2 whitespace-nowrap text-sm font-medium text-muted-foreground">
-        Your v0 generation will show here.
-      </p>
+    <main className="min-h-screen bg-background">
+      <header className="border-b border-border bg-card">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <GraduationCap className="size-6" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold tracking-tight text-foreground">
+                Quản lý đề thi Toán
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                Định dạng đề mới của Bộ GD&amp;ĐT
+              </p>
+            </div>
+          </div>
+          <Button render={<Link href="/create" />}>
+            <Plus />
+            Thêm đề thi mới
+          </Button>
+        </div>
+      </header>
+
+      <div className="mx-auto max-w-5xl px-4 py-6">
+        {examsWithResults.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card px-4 py-16 text-center">
+            <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <GraduationCap className="size-7" />
+            </div>
+            <h2 className="text-lg font-bold text-foreground">Chưa có đề thi nào</h2>
+            <p className="mb-5 mt-1 max-w-sm text-sm text-muted-foreground">
+              Bắt đầu bằng cách tạo đề thi đầu tiên: tải lên file PDF và nhập phiếu đáp án mẫu.
+            </p>
+            <Button size="lg" render={<Link href="/create" />}>
+              <Plus />
+              Thêm đề thi mới
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-5">
+            {examsWithResults.map(({ exam, results }) => (
+              <ExamCard key={exam.id} exam={exam} results={results} />
+            ))}
+          </div>
+        )}
+      </div>
     </main>
   )
 }
