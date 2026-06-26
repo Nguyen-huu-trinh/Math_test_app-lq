@@ -279,9 +279,7 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes }: ExamRunne
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Tiếp tục làm</Button>
-            </DialogClose>
+            <DialogClose render={<Button variant="outline" />}>Tiếp tục làm</DialogClose>
             <Button onClick={() => doSubmit(false)} disabled={submitting}>
               {submitting && <Loader2 className="animate-spin" />}
               Nộp bài

@@ -164,9 +164,7 @@ export function ExamCard({ exam, results }: { exam: Exam; results: ExamResult[] 
           </DialogHeader>
           <AnswerSheetForm value={draftKey} onChange={setDraftKey} />
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Hủy</Button>
-            </DialogClose>
+            <DialogClose render={<Button variant="outline" />}>Hủy</DialogClose>
             <Button onClick={saveKey} disabled={saving}>
               {saving && <Loader2 className="animate-spin" />}
               Lưu đáp án
@@ -186,9 +184,7 @@ export function ExamCard({ exam, results }: { exam: Exam; results: ExamResult[] 
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Hủy</Button>
-            </DialogClose>
+            <DialogClose render={<Button variant="outline" />}>Hủy</DialogClose>
             <Button variant="destructive" onClick={confirmDelete} disabled={deleting}>
               {deleting && <Loader2 className="animate-spin" />}
               Xóa vĩnh viễn
