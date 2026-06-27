@@ -1,8 +1,9 @@
-import Link from "next/link"
-import { Plus, GraduationCap } from "lucide-react"
+import { GraduationCap, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ExamCard } from "@/components/exam-card"
-import { getExams, getResultsForExam } from "@/lib/data"
+import { CreateExamMenu } from "@/components/create-exam-menu"
+import { getExams, getResultCountForExam, getTopResultsForExam } from "@/lib/data"
+import { logout } from "@/app/actions/auth"
 
 export const dynamic = "force-dynamic"
 
@@ -11,7 +12,8 @@ export default async function DashboardPage() {
   const examsWithResults = await Promise.all(
     exams.map(async (exam) => ({
       exam,
-      results: await getResultsForExam(exam.id),
+      results: await getTopResultsForExam(exam.id, 5),
+      resultCount: await getResultCountForExam(exam.id),
     })),
   )
 
@@ -32,10 +34,15 @@ export default async function DashboardPage() {
               </p>
             </div>
           </div>
-          <Button render={<Link href="/create" />}>
-            <Plus />
-            Thêm đề thi mới
-          </Button>
+          <div className="flex items-center gap-2">
+            <CreateExamMenu />
+            <form action={logout}>
+              <Button type="submit" variant="outline" size="sm">
+                <LogOut />
+                Đăng xuất
+              </Button>
+            </form>
+          </div>
         </div>
       </header>
 
@@ -49,15 +56,12 @@ export default async function DashboardPage() {
             <p className="mb-5 mt-1 max-w-sm text-sm text-muted-foreground">
               Bắt đầu bằng cách tạo đề thi đầu tiên: tải lên file PDF và nhập phiếu đáp án mẫu.
             </p>
-            <Button size="lg" render={<Link href="/create" />}>
-              <Plus />
-              Thêm đề thi mới
-            </Button>
+            <CreateExamMenu align="left" />
           </div>
         ) : (
           <div className="flex flex-col gap-5">
-            {examsWithResults.map(({ exam, results }) => (
-              <ExamCard key={exam.id} exam={exam} results={results} />
+            {examsWithResults.map(({ exam, results, resultCount }) => (
+              <ExamCard key={exam.id} exam={exam} results={results} resultCount={resultCount} />
             ))}
           </div>
         )}

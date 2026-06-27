@@ -4,11 +4,10 @@ import { cn } from "@/lib/utils"
 import {
   type AnswerSheet,
   type Part1Choice,
-  PART1_COUNT,
-  PART2_COUNT,
   PART2_SUB_COUNT,
-  PART3_COUNT,
   PART3_MAX_CHARS,
+  getAnswerSheetStructure,
+  totalScoringUnits,
 } from "@/lib/types"
 
 const PART1_OPTIONS: Exclude<Part1Choice, null>[] = ["A", "B", "C", "D"]
@@ -71,6 +70,19 @@ function SectionTitle({ no, title, points }: { no: string; title: string; points
 
 export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormProps) {
   const emit = (next: AnswerSheet) => onChange?.(next)
+  const structure = getAnswerSheetStructure(value)
+  const totalUnits = totalScoringUnits(structure)
+  const unitScore = totalUnits > 0 ? 10 / totalUnits : 0
+  const isCustom = value.examType === "custom"
+  const part1Points = isCustom
+    ? `${(structure.multipleChoiceCount * unitScore).toFixed(2).replace(/0$/u, "").replace(/\.$/u, "")} điểm`
+    : "3 điểm"
+  const part2Points = isCustom
+    ? `${(structure.trueFalseCount * PART2_SUB_COUNT * unitScore).toFixed(2).replace(/0$/u, "").replace(/\.$/u, "")} điểm`
+    : "4 điểm"
+  const part3Points = isCustom
+    ? `${(structure.shortAnswerCount * unitScore).toFixed(2).replace(/0$/u, "").replace(/\.$/u, "")} điểm`
+    : "3 điểm"
 
   const setPart1 = (q: number, choice: Exclude<Part1Choice, null>) => {
     if (disabled) return
@@ -97,9 +109,13 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
     <div className="flex flex-col gap-6">
       {/* PHẦN I */}
       <section className="rounded-xl border border-border bg-card p-4">
-        <SectionTitle no="PHẦN I" title="Trắc nghiệm nhiều lựa chọn (12 câu)" points="3 điểm" />
+        <SectionTitle
+          no="PHẦN I"
+          title={`Trắc nghiệm nhiều lựa chọn (${structure.multipleChoiceCount} câu)`}
+          points={part1Points}
+        />
         <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
-          {Array.from({ length: PART1_COUNT }).map((_, q) => (
+          {Array.from({ length: structure.multipleChoiceCount }).map((_, q) => (
             <div key={q} className="flex items-center gap-3 rounded-lg px-1 py-1">
               <span className="w-6 shrink-0 text-right text-sm font-bold tabular-nums text-foreground">
                 {q + 1}
@@ -122,9 +138,13 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
 
       {/* PHẦN II */}
       <section className="rounded-xl border border-border bg-card p-4">
-        <SectionTitle no="PHẦN II" title="Trắc nghiệm Đúng / Sai (4 câu)" points="4 điểm" />
+        <SectionTitle
+          no="PHẦN II"
+          title={`Trắc nghiệm Đúng / Sai (${structure.trueFalseCount} câu)`}
+          points={part2Points}
+        />
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {Array.from({ length: PART2_COUNT }).map((_, q) => (
+          {Array.from({ length: structure.trueFalseCount }).map((_, q) => (
             <div key={q} className="rounded-lg border border-border p-3">
               <p className="mb-2 text-sm font-semibold text-foreground">Câu {q + 1}</p>
               <div className="flex flex-col gap-2">
@@ -173,9 +193,13 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
 
       {/* PHẦN III */}
       <section className="rounded-xl border border-border bg-card p-4">
-        <SectionTitle no="PHẦN III" title="Trả lời ngắn / Điền đáp số (6 câu)" points="3 điểm" />
+        <SectionTitle
+          no="PHẦN III"
+          title={`Trả lời ngắn / Điền đáp số (${structure.shortAnswerCount} câu)`}
+          points={part3Points}
+        />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: PART3_COUNT }).map((_, q) => (
+          {Array.from({ length: structure.shortAnswerCount }).map((_, q) => (
             <div key={q} className="rounded-lg border border-border p-3">
               <p className="mb-2 text-sm font-semibold text-foreground">Câu {q + 1}</p>
               <div className="flex gap-2">

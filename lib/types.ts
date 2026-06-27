@@ -8,6 +8,20 @@ export const PART3_MAX_CHARS = 4 // tối đa 4 ký tự
 
 export const DEFAULT_DURATION = 90 // phút
 
+export type ExamType = "standard" | "custom"
+
+export interface CustomExamStructure {
+  multipleChoiceCount: number
+  trueFalseCount: number
+  shortAnswerCount: number
+}
+
+export const STANDARD_EXAM_STRUCTURE: CustomExamStructure = {
+  multipleChoiceCount: PART1_COUNT,
+  trueFalseCount: PART2_COUNT,
+  shortAnswerCount: PART3_COUNT,
+}
+
 // Phần I: "A" | "B" | "C" | "D" hoặc null nếu chưa chọn
 export type Part1Choice = "A" | "B" | "C" | "D" | null
 
@@ -15,6 +29,8 @@ export type Part1Choice = "A" | "B" | "C" | "D" | null
 export type Part2Choice = boolean | null
 
 export interface AnswerSheet {
+  examType?: ExamType
+  customStructure?: CustomExamStructure
   // 12 phần tử
   part1: Part1Choice[]
   // 4 câu, mỗi câu 4 ý
@@ -33,6 +49,8 @@ export interface Exam {
   title: string
   pdfUrl: string
   durationMinutes: number
+  examType: ExamType
+  customStructure: CustomExamStructure
   answerKey: AnswerSheet
   createdAt: string
 }
@@ -46,10 +64,31 @@ export interface ExamResult {
   submittedAt: string
 }
 
-export function emptyAnswerSheet(): AnswerSheet {
+export function getAnswerSheetStructure(answerSheet?: Partial<AnswerSheet>): CustomExamStructure {
+  return answerSheet?.customStructure ?? {
+    multipleChoiceCount: answerSheet?.part1?.length ?? PART1_COUNT,
+    trueFalseCount: answerSheet?.part2?.length ?? PART2_COUNT,
+    shortAnswerCount: answerSheet?.part3?.length ?? PART3_COUNT,
+  }
+}
+
+export function totalScoringUnits(structure: CustomExamStructure): number {
+  return (
+    structure.multipleChoiceCount +
+    structure.trueFalseCount * PART2_SUB_COUNT +
+    structure.shortAnswerCount
+  )
+}
+
+export function emptyAnswerSheet(
+  structure: CustomExamStructure = STANDARD_EXAM_STRUCTURE,
+  examType: ExamType = "standard",
+): AnswerSheet {
   return {
-    part1: Array(PART1_COUNT).fill(null),
-    part2: Array.from({ length: PART2_COUNT }, () => Array(PART2_SUB_COUNT).fill(null)),
-    part3: Array.from({ length: PART3_COUNT }, () => Array(PART3_MAX_CHARS).fill("")),
+    examType,
+    customStructure: structure,
+    part1: Array(structure.multipleChoiceCount).fill(null),
+    part2: Array.from({ length: structure.trueFalseCount }, () => Array(PART2_SUB_COUNT).fill(null)),
+    part3: Array.from({ length: structure.shortAnswerCount }, () => Array(PART3_MAX_CHARS).fill("")),
   }
 }

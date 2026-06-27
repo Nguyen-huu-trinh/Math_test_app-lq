@@ -3,7 +3,19 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { Check, Clock, Copy, FileText, Link2, Loader2, Pencil, Trash2, Users } from "lucide-react"
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  Download,
+  FileText,
+  Link2,
+  Loader2,
+  Pencil,
+  Trash2,
+  Users,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -16,6 +28,7 @@ import {
 } from "@/components/ui/dialog"
 import { AnswerSheetForm } from "@/components/answer-sheet"
 import { deleteExam, updateAnswerKey } from "@/app/actions/exams"
+import { exportResultsToExcel } from "@/app/actions/export-results"
 import type { Exam, ExamResult, AnswerSheet } from "@/lib/types"
 
 function formatScore(n: number) {
@@ -31,14 +44,24 @@ function formatTime(iso: string) {
   })
 }
 
-export function ExamCard({ exam, results }: { exam: Exam; results: ExamResult[] }) {
+export function ExamCard({
+  exam,
+  results,
+  resultCount,
+}: {
+  exam: Exam
+  results: ExamResult[]
+  resultCount: number
+}) {
   const router = useRouter()
   const [copied, setCopied] = useState(false)
+  const [resultsOpen, setResultsOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [draftKey, setDraftKey] = useState<AnswerSheet>(exam.answerKey)
   const [saving, startSaving] = useTransition()
   const [deleting, startDeleting] = useTransition()
+  const [exporting, startExporting] = useTransition()
 
   function copyLink() {
     const url = `${window.location.origin}/exam/${exam.id}`
@@ -75,6 +98,31 @@ export function ExamCard({ exam, results }: { exam: Exam; results: ExamResult[] 
     })
   }
 
+  function downloadExcel() {
+    startExporting(async () => {
+      try {
+        const file = await exportResultsToExcel(exam.id)
+        const binary = window.atob(file.base64)
+        const bytes = new Uint8Array(binary.length)
+
+        for (let index = 0; index < binary.length; index += 1) {
+          bytes[index] = binary.charCodeAt(index)
+        }
+
+        const url = URL.createObjectURL(new Blob([bytes], { type: file.contentType }))
+        const link = document.createElement("a")
+        link.href = url
+        link.download = file.filename
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+        URL.revokeObjectURL(url)
+      } catch {
+        toast.error("Không thể tải file Excel")
+      }
+    })
+  }
+
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
       <div className="flex flex-col gap-3 border-b border-border p-4 sm:flex-row sm:items-start sm:justify-between">
@@ -89,7 +137,7 @@ export function ExamCard({ exam, results }: { exam: Exam; results: ExamResult[] 
                 <Clock className="size-3.5" /> {exam.durationMinutes} phút
               </span>
               <span className="inline-flex items-center gap-1">
-                <Users className="size-3.5" /> {results.length} lượt làm
+                <Users className="size-3.5" /> {resultCount} lượt làm
               </span>
               <span>Tạo {formatTime(exam.createdAt)}</span>
             </div>
@@ -114,43 +162,67 @@ export function ExamCard({ exam, results }: { exam: Exam; results: ExamResult[] 
 
       {/* Bảng kết quả */}
       <div className="p-4">
-        <p className="mb-2 text-sm font-semibold text-foreground">
-          Kết quả làm bài của học sinh
-        </p>
-        {results.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
-            Chưa có học sinh nào nộp bài.
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-semibold text-foreground">
+            Kết quả làm bài của học sinh
           </p>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border bg-muted/50 text-left text-xs uppercase text-muted-foreground">
-                  <th className="px-3 py-2 font-medium">#</th>
-                  <th className="px-3 py-2 font-medium">Họ và tên</th>
-                  <th className="px-3 py-2 text-right font-medium">Số điểm</th>
-                  <th className="px-3 py-2 text-right font-medium">Thời gian nộp</th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((r, i) => (
-                  <tr key={r.id} className="border-b border-border last:border-0">
-                    <td className="px-3 py-2 tabular-nums text-muted-foreground">{i + 1}</td>
-                    <td className="px-3 py-2 font-medium text-foreground">{r.studentName}</td>
-                    <td className="px-3 py-2 text-right">
-                      <span className="inline-flex min-w-10 justify-center rounded-md bg-primary/15 px-2 py-0.5 font-bold tabular-nums text-foreground">
-                        {formatScore(r.score)}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
-                      {formatTime(r.submittedAt)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            aria-expanded={resultsOpen}
+            onClick={() => setResultsOpen((open) => !open)}
+          >
+            {resultsOpen ? <ChevronUp /> : <ChevronDown />}
+            Xem danh sách kết quả
+          </Button>
+        </div>
+
+        {resultsOpen ? (
+          <div className="mt-3 space-y-3">
+            {resultCount === 0 ? (
+              <p className="rounded-lg border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
+                Chưa có học sinh nào nộp bài.
+              </p>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/50 text-left text-xs uppercase text-muted-foreground">
+                      <th className="px-3 py-2 font-medium">#</th>
+                      <th className="px-3 py-2 font-medium">Họ và tên</th>
+                      <th className="px-3 py-2 text-right font-medium">Số điểm</th>
+                      <th className="px-3 py-2 text-right font-medium">Thời gian nộp</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {results.map((r, i) => (
+                      <tr key={r.id} className="border-b border-border last:border-0">
+                        <td className="px-3 py-2 tabular-nums text-muted-foreground">{i + 1}</td>
+                        <td className="px-3 py-2 font-medium text-foreground">{r.studentName}</td>
+                        <td className="px-3 py-2 text-right">
+                          <span className="inline-flex min-w-10 justify-center rounded-md bg-primary/15 px-2 py-0.5 font-bold tabular-nums text-foreground">
+                            {formatScore(r.score)}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+                          {formatTime(r.submittedAt)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="flex justify-end">
+              <Button type="button" variant="outline" size="sm" onClick={downloadExcel} disabled={exporting}>
+                {exporting ? <Loader2 className="animate-spin" /> : <Download />}
+                Tải file Excel toàn bộ kết quả
+              </Button>
+            </div>
           </div>
-        )}
+        ) : null}
       </div>
 
       {/* Dialog sửa đáp án */}

@@ -1,4 +1,4 @@
-import { type AnswerSheet, part3ToString, PART2_COUNT, PART3_COUNT } from "@/lib/types"
+import { type AnswerSheet, part3ToString, getAnswerSheetStructure } from "@/lib/types"
 import { cn } from "@/lib/utils"
 
 function tf(v: boolean | null) {
@@ -14,6 +14,8 @@ interface AnswerKeyDisplayProps {
 
 // Hiển thị đáp án chi tiết để đối chiếu. Nếu có `student`, tô màu đúng/sai.
 export function AnswerKeyDisplay({ answerKey, student }: AnswerKeyDisplayProps) {
+  const structure = getAnswerSheetStructure(answerKey)
+
   return (
     <div className="flex flex-col gap-5 text-sm">
       <div>
@@ -42,11 +44,11 @@ export function AnswerKeyDisplay({ answerKey, student }: AnswerKeyDisplayProps) 
       <div>
         <p className="mb-2 font-bold text-foreground">Phần II</p>
         <div className="flex flex-col gap-1.5">
-          {Array.from({ length: PART2_COUNT }).map((_, q) => (
+          {Array.from({ length: structure.trueFalseCount }).map((_, q) => (
             <div key={q} className="flex flex-wrap items-center gap-2">
               <span className="font-medium text-muted-foreground">Câu {q + 1}:</span>
-              {answerKey.part2[q].map((v, sub) => {
-                const ok = student ? student.part2[q][sub] === v : undefined
+              {(answerKey.part2[q] ?? []).map((v, sub) => {
+                const ok = student ? student.part2[q]?.[sub] === v : undefined
                 return (
                   <span
                     key={sub}
@@ -69,10 +71,10 @@ export function AnswerKeyDisplay({ answerKey, student }: AnswerKeyDisplayProps) 
       <div>
         <p className="mb-2 font-bold text-foreground">Phần III</p>
         <div className="flex flex-col gap-1.5">
-          {Array.from({ length: PART3_COUNT }).map((_, q) => {
-            const keyStr = part3ToString(answerKey.part3[q]) || "—"
-            const stuStr = student ? part3ToString(student.part3[q]) : undefined
-            const ok = student ? part3ToString(answerKey.part3[q]) === stuStr : undefined
+          {Array.from({ length: structure.shortAnswerCount }).map((_, q) => {
+            const keyStr = part3ToString(answerKey.part3[q] ?? []) || "—"
+            const stuStr = student ? part3ToString(student.part3[q] ?? []) : undefined
+            const ok = student ? part3ToString(answerKey.part3[q] ?? []) === stuStr : undefined
             return (
               <div key={q} className="flex flex-wrap items-center gap-2">
                 <span className="font-medium text-muted-foreground">Câu {q + 1}:</span>

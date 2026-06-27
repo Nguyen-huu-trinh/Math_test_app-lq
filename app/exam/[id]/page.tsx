@@ -19,6 +19,7 @@ export default async function ExamPage({
       title={exam.title}
       pdfUrl={exam.pdfUrl}
       durationMinutes={exam.durationMinutes}
+      answerKey={exam.answerKey}
     />
   )
 }

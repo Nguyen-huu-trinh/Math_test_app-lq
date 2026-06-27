@@ -28,7 +28,7 @@ import { AnswerSheetForm } from "@/components/answer-sheet"
 import { AnswerKeyDisplay } from "@/components/answer-key-display"
 import { submitExam } from "@/app/actions/exams"
 import { cn } from "@/lib/utils"
-import { emptyAnswerSheet, type AnswerSheet } from "@/lib/types"
+import { emptyAnswerSheet, getAnswerSheetStructure, type AnswerSheet } from "@/lib/types"
 import type { GradeBreakdown } from "@/lib/grading"
 
 interface ExamRunnerProps {
@@ -36,6 +36,7 @@ interface ExamRunnerProps {
   title: string
   pdfUrl: string
   durationMinutes: number
+  answerKey: AnswerSheet
 }
 
 type Phase = "intro" | "running" | "submitted"
@@ -59,10 +60,13 @@ function PdfViewer({ url }: { url: string }) {
   )
 }
 
-export function ExamRunner({ examId, title, pdfUrl, durationMinutes }: ExamRunnerProps) {
+export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }: ExamRunnerProps) {
+  const structure = getAnswerSheetStructure(answerKey)
   const [phase, setPhase] = useState<Phase>("intro")
   const [studentName, setStudentName] = useState("")
-  const [answers, setAnswers] = useState<AnswerSheet>(emptyAnswerSheet())
+  const [answers, setAnswers] = useState<AnswerSheet>(
+    emptyAnswerSheet(structure, answerKey.examType ?? "standard"),
+  )
   const [secondsLeft, setSecondsLeft] = useState(durationMinutes * 60)
   const [submitting, setSubmitting] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -322,9 +326,9 @@ function ResultsPanel({
         </p>
         <p className="text-sm text-muted-foreground">/ 10 điểm</p>
         <div className="mt-4 text-left">
-          <ScoreRow label="Phần I (Trắc nghiệm)" value={breakdown.part1} max={3} />
-          <ScoreRow label="Phần II (Đúng/Sai)" value={breakdown.part2} max={4} />
-          <ScoreRow label="Phần III (Điền đáp số)" value={breakdown.part3} max={3} />
+          <ScoreRow label="Phần I (Trắc nghiệm)" value={breakdown.part1} max={breakdown.part1Max ?? 3} />
+          <ScoreRow label="Phần II (Đúng/Sai)" value={breakdown.part2} max={breakdown.part2Max ?? 4} />
+          <ScoreRow label="Phần III (Điền đáp số)" value={breakdown.part3} max={breakdown.part3Max ?? 3} />
         </div>
       </div>
 
