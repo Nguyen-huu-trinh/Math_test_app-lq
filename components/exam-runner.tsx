@@ -50,12 +50,25 @@ function fmt(totalSeconds: number) {
   return h > 0 ? `${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`
 }
 
+// function PdfViewer({ url }: { url: string }) {
+//   return (
+//     <iframe
+//       src={`${url}#toolbar=1&view=FitH`}
+//       title="Đề thi PDF"
+//       className="h-full w-full border-0 bg-muted"
+//     />
+//   )
+// }
+
 function PdfViewer({ url }: { url: string }) {
+  const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`
+  
   return (
     <iframe
-      src={`${url}#toolbar=1&view=FitH`}
+      src={googleViewerUrl}
       title="Đề thi PDF"
       className="h-full w-full border-0 bg-muted"
+      frameBorder="0"
     />
   )
 }
