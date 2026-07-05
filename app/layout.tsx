@@ -11,8 +11,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Hệ thống thi Toán trực tuyến',
-  description: 'Tạo, quản lý và làm bài kiểm tra Toán theo định dạng đề mới của Bộ GD&ĐT',
+  title: 'Toán Anh Huy MATH-STER',
   generator: 'v0.app',
   icons: {
     icon: [
