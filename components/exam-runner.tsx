@@ -319,16 +319,49 @@ function ScoreRow({ label, value, max }: { label: string; value: number; max: nu
   )
 }
 
+// function ResultsPanel({
+//   result,
+//   answers,
+//   studentName,
+// }: {
+//   result: { breakdown: GradeBreakdown; answerKey: AnswerSheet }
+//   answers: AnswerSheet
+//   studentName: string
+// }) {
+//   const { breakdown, answerKey } = result
+//   return (
+//     <div className="flex flex-col gap-5">
+//       {/* Bảng điểm */}
+//       <div className="rounded-xl border border-border bg-card p-5 text-center">
+//         <p className="text-sm text-muted-foreground">{studentName}</p>
+//         <p className="mt-1 text-5xl font-extrabold tabular-nums text-primary">
+//           {breakdown.total}
+//         </p>
+//         <p className="text-sm text-muted-foreground">/ 10 điểm</p>
+//         <div className="mt-4 text-left">
+//           <ScoreRow label="Phần I (Trắc nghiệm)" value={breakdown.part1} max={breakdown.part1Max ?? 3} />
+//           <ScoreRow label="Phần II (Đúng/Sai)" value={breakdown.part2} max={breakdown.part2Max ?? 4} />
+//           <ScoreRow label="Phần III (Điền đáp số)" value={breakdown.part3} max={breakdown.part3Max ?? 3} />
+//         </div>
+//       </div>
+
+//       {/* Đáp án chi tiết để đối chiếu */}
+//       <div className="rounded-xl border border-border bg-card p-4">
+//         <h3 className="mb-3 font-bold text-foreground">Đáp án chi tiết</h3>
+//         <AnswerKeyDisplay answerKey={answerKey} student={answers} />
+//       </div>
+//     </div>
+//   )
+// }
+
 function ResultsPanel({
   result,
-  answers,
   studentName,
 }: {
   result: { breakdown: GradeBreakdown; answerKey: AnswerSheet }
-  answers: AnswerSheet
   studentName: string
 }) {
-  const { breakdown, answerKey } = result
+  const { breakdown } = result
   return (
     <div className="flex flex-col gap-5">
       {/* Bảng điểm */}
@@ -343,12 +376,6 @@ function ResultsPanel({
           <ScoreRow label="Phần II (Đúng/Sai)" value={breakdown.part2} max={breakdown.part2Max ?? 4} />
           <ScoreRow label="Phần III (Điền đáp số)" value={breakdown.part3} max={breakdown.part3Max ?? 3} />
         </div>
-      </div>
-
-      {/* Đáp án chi tiết để đối chiếu */}
-      <div className="rounded-xl border border-border bg-card p-4">
-        <h3 className="mb-3 font-bold text-foreground">Đáp án chi tiết</h3>
-        <AnswerKeyDisplay answerKey={answerKey} student={answers} />
       </div>
     </div>
   )
