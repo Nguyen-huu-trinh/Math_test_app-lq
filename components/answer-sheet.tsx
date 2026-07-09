@@ -114,9 +114,11 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
           title={`Trắc nghiệm nhiều lựa chọn (${structure.multipleChoiceCount} câu)`}
           points={part1Points}
         />
-        <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
+        {/* <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2"> */}
+        <div className="columns-1 gap-x-6 sm:columns-2">
           {Array.from({ length: structure.multipleChoiceCount }).map((_, q) => (
-            <div key={q} className="flex items-center gap-3 rounded-lg px-1 py-1">
+            // <div key={q} className="flex items-center gap-3 rounded-lg px-1 py-1">
+            <div key={q} className="flex break-inside-avoid items-center gap-3 rounded-lg px-1 py-1 mb-2">
               <span className="w-6 shrink-0 text-right text-sm font-bold tabular-nums text-foreground">
                 {q + 1}
               </span>

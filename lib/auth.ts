@@ -4,7 +4,6 @@ export const AUTH_COOKIE_NAME = "auth_token"
 
 const TEACHER_USERNAME = "Math-ster"
 const HASHED_PASSWORD = "$2b$10$B5eDvKBLV1JAhW7I/NOZvuXULrXOo8jpJt1p6pOHetFbCsyq7OcoS"
-
 function getJwtSecret(): string {
   const secret = process.env.JWT_SECRET
   if (!secret) {
