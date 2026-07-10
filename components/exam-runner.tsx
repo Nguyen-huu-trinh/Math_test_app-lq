@@ -177,7 +177,7 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
               id="student-id"
               type="text"
               value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
+              onChange={(e) => setStudentId(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === "Enter" && startExam()}
               placeholder="Nhập mã số học sinh của bạn"
               className="mt-1.5"
