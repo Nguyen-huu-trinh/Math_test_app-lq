@@ -24,6 +24,17 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
+## Database migrations
+
+Set `DATABASE_URL` and `JWT_SECRET` in `.env.local`. For a fresh Neon database, run the SQL migrations in order:
+
+```bash
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f drizzle/0000_initial_schema.sql
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f drizzle/0001_add_student_id_to_results.sql
+```
+
+For an existing database created before Student ID was introduced, run only `0001_add_student_id_to_results.sql`. Existing result rows are kept and receive an empty Student ID; all new submissions require one.
+
 ## Learn More
 
 To learn more, take a look at the following resources:

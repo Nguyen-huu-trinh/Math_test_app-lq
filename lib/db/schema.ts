@@ -14,6 +14,7 @@ export const results = pgTable("results", {
   id: uuid("id").primaryKey().defaultRandom(),
   examId: uuid("exam_id").notNull(),
   studentName: text("student_name").notNull(),
+  studentId: text("student_id").notNull(),
   score: real("score").notNull(),
   answers: jsonb("answers").$type<AnswerSheet>().notNull(),
   submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),

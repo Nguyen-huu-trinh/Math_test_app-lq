@@ -77,6 +77,7 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
   const structure = getAnswerSheetStructure(answerKey)
   const [phase, setPhase] = useState<Phase>("intro")
   const [studentName, setStudentName] = useState("")
+  const [studentId, setStudentId] = useState("")
   const [answers, setAnswers] = useState<AnswerSheet>(
     emptyAnswerSheet(structure, answerKey.examType ?? "standard"),
   )
@@ -99,7 +100,7 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
       submittedRef.current = true
       setSubmitting(true)
       try {
-        const res = await submitExam({ examId, studentName, answers })
+        const res = await submitExam({ examId, studentName, studentId, answers })
         setResult(res)
         setPhase("submitted")
         setMobileView("sheet")
@@ -114,7 +115,7 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
         setConfirmOpen(false)
       }
     },
-    [answers, examId, studentName],
+    [answers, examId, studentId, studentName],
   )
 
   // Đồng hồ đếm ngược
@@ -138,6 +139,10 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
   function startExam() {
     if (!studentName.trim()) {
       toast.error("Vui lòng nhập họ và tên")
+      return
+    }
+    if (!studentId.trim()) {
+      toast.error("Vui lòng nhập mã số học sinh")
       return
     }
     setPhase("running")
@@ -166,9 +171,21 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
               <li>Bài sẽ tự động nộp khi hết thời gian.</li>
             </ul>
           </div>
-
           <div className="mb-5">
-            <Label htmlFor="name">Họ và tên học sinh</Label>
+            {/* <Label htmlFor="student-id">Mã số học sinh</Label> */}
+            <Input
+              id="student-id"
+              type="text"
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && startExam()}
+              placeholder="Nhập mã số học sinh của bạn"
+              className="mt-1.5"
+              required
+            />
+          </div>
+          <div className="mb-5">
+            {/* <Label htmlFor="name">Họ và tên học sinh</Label> */}
             <Input
               id="name"
               value={studentName}
@@ -179,6 +196,20 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
               autoFocus
             />
           </div>
+
+          {/* <div className="mb-5">
+            <Label htmlFor="student-id">Mã số học sinh</Label>
+            <Input
+              id="student-id"
+              type="text"
+              value={studentId}
+              onChange={(e) => setStudentId(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && startExam()}
+              placeholder="Nhập mã số học sinh của bạn"
+              className="mt-1.5"
+              required
+            />
+          </div> */}
 
           <Button size="lg" className="w-full" onClick={startExam}>
             <Play />
@@ -250,7 +281,7 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
         >
           <div className="p-3 sm:p-4">
             {submitted && result ? (
-              <ResultsPanel result={result} answers={answers} studentName={studentName} />
+              <ResultsPanel result={result} studentName={studentName} />
             ) : (
               <>
                 <div className="mb-3 flex items-center gap-2">

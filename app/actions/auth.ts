@@ -23,8 +23,6 @@ export async function loginTeacher(formData: FormData) {
 
   const token = await issueToken({ username: teacher.username })
   const cookieStore = await cookies()
-  console.log("[auth] login token:", token)
-
   cookieStore.set({
     name: AUTH_COOKIE_NAME,
     value: token,

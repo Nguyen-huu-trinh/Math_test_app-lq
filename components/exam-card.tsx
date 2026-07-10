@@ -190,6 +190,7 @@ export function ExamCard({
                   <thead>
                     <tr className="border-b border-border bg-muted/50 text-left text-xs uppercase text-muted-foreground">
                       <th className="px-3 py-2 font-medium">#</th>
+                      <th className="px-3 py-2 font-medium">Mã số học sinh</th>
                       <th className="px-3 py-2 font-medium">Họ và tên</th>
                       <th className="px-3 py-2 text-right font-medium">Số điểm</th>
                       <th className="px-3 py-2 text-right font-medium">Thời gian nộp</th>
@@ -199,6 +200,7 @@ export function ExamCard({
                     {results.map((r, i) => (
                       <tr key={r.id} className="border-b border-border last:border-0">
                         <td className="px-3 py-2 tabular-nums text-muted-foreground">{i + 1}</td>
+                        <td className="px-3 py-2 text-muted-foreground">{r.studentId}</td>
                         <td className="px-3 py-2 font-medium text-foreground">{r.studentName}</td>
                         <td className="px-3 py-2 text-right">
                           <span className="inline-flex min-w-10 justify-center rounded-md bg-primary/15 px-2 py-0.5 font-bold tabular-nums text-foreground">

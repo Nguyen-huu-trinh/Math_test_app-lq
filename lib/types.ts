@@ -59,6 +59,7 @@ export interface ExamResult {
   id: string
   examId: string
   studentName: string
+  studentId: string
   score: number
   answers: AnswerSheet
   submittedAt: string

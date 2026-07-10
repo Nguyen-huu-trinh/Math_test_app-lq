@@ -59,6 +59,7 @@ export async function deleteExam(examId: string): Promise<void> {
 export async function submitExam(input: {
   examId: string
   studentName: string
+  studentId: string
   answers: AnswerSheet
 }): Promise<{ breakdown: GradeBreakdown; answerKey: AnswerSheet }> {
   const [exam] = await db
@@ -70,9 +71,13 @@ export async function submitExam(input: {
   if (!exam) throw new Error("Không tìm thấy đề thi")
 
   const breakdown = gradeAnswers(exam.answerKey, input.answers)
+  const studentId = input.studentId.trim()
+
+  if (!studentId) throw new Error("Student ID is required")
 
   await db.insert(results).values({
     examId: input.examId,
+    studentId,
     studentName: input.studentName.trim() || "Học sinh ẩn danh",
     score: breakdown.total,
     answers: input.answers,

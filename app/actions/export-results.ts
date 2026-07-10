@@ -65,8 +65,9 @@ function worksheetXml(rows: string[][]): string {
   <cols>
     <col min="1" max="1" width="8" customWidth="1"/>
     <col min="2" max="2" width="28" customWidth="1"/>
-    <col min="3" max="3" width="12" customWidth="1"/>
-    <col min="4" max="4" width="22" customWidth="1"/>
+    <col min="3" max="3" width="20" customWidth="1"/>
+    <col min="4" max="4" width="12" customWidth="1"/>
+    <col min="5" max="5" width="22" customWidth="1"/>
   </cols>
   <sheetData>${sheetRows}</sheetData>
 </worksheet>`
@@ -215,10 +216,11 @@ export async function exportResultsToExcel(examId: string): Promise<ExportResult
 
   const results = await getResultsForExam(examId)
   const rows = [
-    ["STT", "Họ và tên", "Điểm", "Thời gian nộp"],
+    ["STT", "Họ và tên", "Mã số học sinh", "Điểm", "Thời gian nộp"],
     ...results.map((result, index) => [
       String(index + 1),
       result.studentName,
+      result.studentId,
       formatScore(result.score),
       formatSubmittedAt(result.submittedAt),
     ]),
