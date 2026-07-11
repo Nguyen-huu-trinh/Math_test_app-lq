@@ -141,8 +141,15 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
       toast.error("Vui lòng nhập họ và tên")
       return
     }
-    if (!studentId.trim()) {
+    const id = studentId.trim()
+
+    if (!id) {
       toast.error("Vui lòng nhập mã số học sinh")
+      return
+    }
+
+    if (id.length < 4 || id.length > 6) {
+      toast.error("Mã số học sinh phải có từ 4 đến 6 ký tự.")
       return
     }
     setPhase("running")
@@ -178,6 +185,8 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
               type="text"
               value={studentId}
               onChange={(e) => setStudentId(e.target.value.toUpperCase())}
+              minLength={4}
+              maxLength={6}
               onKeyDown={(e) => e.key === "Enter" && startExam()}
               placeholder="Nhập mã số học sinh của bạn"
               className="mt-1.5"
