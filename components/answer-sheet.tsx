@@ -101,6 +101,8 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
     emit({ ...value, part2 })
   }
 
+  
+
   const setPart3 = (q: number, col: number, char: string) => {
     if (disabled) return
     const part3 = value.part3.map((row) => [...row])
@@ -118,7 +120,17 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
           points={part1Points}
         />
         {/* <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2"> */}
-        <div className="columns-1 gap-x-6 sm:columns-2">
+        {/* <div className="columns-1 gap-x-6 sm:columns-2"> */}
+        <div className="
+            grid
+            columns-3
+            gap-x-6
+            grid-cols-1
+            sm:grid-cols-2
+            md:grid-cols-2
+            xl:grid-cols-3
+            2xl:grid-cols-3
+        ">
           {Array.from({ length: structure.multipleChoiceCount }).map((_, q) => (
             // <div key={q} className="flex items-center gap-3 rounded-lg px-1 py-1">
             <div key={q} className="flex break-inside-avoid items-center gap-3 rounded-lg px-1 py-1 mb-2">
@@ -148,14 +160,23 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
           title={`Trắc nghiệm Đúng / Sai (${structure.trueFalseCount} câu)`}
           points={part2Points}
         />
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* <div className="grid grid-cols-1 gap-4 lg:grid-cols-4"> */}
+        <div className="
+            grid
+            gap-3
+            grid-cols-2
+            sm:grid-cols-3
+            md:grid-cols-3
+            xl:grid-cols-4
+            2xl:grid-cols-4
+        ">
           {Array.from({ length: structure.trueFalseCount }).map((_, q) => (
             <div key={q} className="rounded-lg border border-border p-3">
               <p className="mb-2 text-sm font-semibold text-foreground">Câu {part2Start + q + 1}</p>
               <div className="flex flex-col gap-2">
                 {Array.from({ length: PART2_SUB_COUNT }).map((_, sub) => (
                   <div key={sub} className="flex items-center justify-between gap-2">
-                    <span className="text-sm text-muted-foreground">Ý {PART2_LABELS[sub]})</span>
+                    <span className="text-sm text-muted-foreground">{PART2_LABELS[sub]})</span>
                     <div className="flex gap-2">
                       <button
                         type="button"
@@ -170,7 +191,7 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
                           disabled && "cursor-default",
                         )}
                       >
-                        Đúng
+                        Đ
                       </button>
                       <button
                         type="button"
@@ -185,7 +206,7 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
                           disabled && "cursor-default",
                         )}
                       >
-                        Sai
+                        S
                       </button>
                     </div>
                   </div>
