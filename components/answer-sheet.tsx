@@ -71,6 +71,9 @@ function SectionTitle({ no, title, points }: { no: string; title: string; points
 export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormProps) {
   const emit = (next: AnswerSheet) => onChange?.(next)
   const structure = getAnswerSheetStructure(value)
+  const part2Start = structure.multipleChoiceCount
+  const part3Start =
+    structure.multipleChoiceCount + structure.trueFalseCount
   const totalUnits = totalScoringUnits(structure)
   const unitScore = totalUnits > 0 ? 10 / totalUnits : 0
   const isCustom = value.examType === "custom"
@@ -148,7 +151,7 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {Array.from({ length: structure.trueFalseCount }).map((_, q) => (
             <div key={q} className="rounded-lg border border-border p-3">
-              <p className="mb-2 text-sm font-semibold text-foreground">Câu {q + 1}</p>
+              <p className="mb-2 text-sm font-semibold text-foreground">Câu {part2Start + q + 1}</p>
               <div className="flex flex-col gap-2">
                 {Array.from({ length: PART2_SUB_COUNT }).map((_, sub) => (
                   <div key={sub} className="flex items-center justify-between gap-2">
@@ -203,7 +206,7 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: structure.shortAnswerCount }).map((_, q) => (
             <div key={q} className="rounded-lg border border-border p-3">
-              <p className="mb-2 text-sm font-semibold text-foreground">Câu {q + 1}</p>
+              <p className="mb-2 text-sm font-semibold text-foreground">Câu {part3Start + q + 1}</p>
               <div className="flex gap-2">
                 {Array.from({ length: PART3_MAX_CHARS }).map((_, col) => {
                   const special = col === 0 ? "-" : col === 1 ? "," : null
