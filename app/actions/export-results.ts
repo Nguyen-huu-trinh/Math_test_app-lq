@@ -216,11 +216,12 @@ export async function exportResultsToExcel(examId: string): Promise<ExportResult
 
   const results = await getResultsForExam(examId)
   const rows = [
-    ["STT", "Họ và tên", "Mã số học sinh", "Điểm", "Thời gian nộp"],
+    ["STT", "Mã số học sinh", "Họ và tên", "Điểm", "Thời gian nộp"],
     ...results.map((result, index) => [
       String(index + 1),
+       result.studentId,
       result.studentName,
-      result.studentId,
+     
       formatScore(result.score),
       formatSubmittedAt(result.submittedAt),
     ]),

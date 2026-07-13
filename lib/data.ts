@@ -22,8 +22,9 @@ function toResult(row: typeof results.$inferSelect): ExamResult {
   return {
     id: row.id,
     examId: row.examId,
-    studentName: row.studentName,
+    
     studentId: row.studentId,
+    studentName: row.studentName,
     score: row.score,
     answers: row.answers,
     submittedAt: row.submittedAt.toISOString(),
