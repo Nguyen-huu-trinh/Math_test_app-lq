@@ -148,8 +148,8 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
       return
     }
 
-    if (id.length < 4 || id.length > 6) {
-      toast.error("Mã số học sinh phải có từ 4 đến 6 ký tự.")
+    if (id.length != 4 && id.length != 6) {
+      toast.error("Mã số học sinh phải có 4 hoặc 6 ký tự.")
       return
     }
     setPhase("running")
