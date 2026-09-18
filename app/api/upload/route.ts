@@ -23,10 +23,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     })
 
     return NextResponse.json(jsonResponse)
-  } catch (error) {
-    return NextResponse.json(
-      { error: (error as Error).message },
-      { status: 400 },
-    )
-  }
+} catch (error) {
+  console.error("[BLOB UPLOAD ERROR]", error)
+
+  return NextResponse.json(
+    {
+      error: error instanceof Error ? error.message : String(error),
+    },
+    { status: 500 },
+  )
+}
 }
