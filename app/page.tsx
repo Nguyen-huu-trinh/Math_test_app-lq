@@ -12,7 +12,7 @@ export default async function DashboardPage() {
   const examsWithResults = await Promise.all(
     exams.map(async (exam) => ({
       exam,
-      results: await getTopResultsForExam(exam.id, 5),
+      results: await getTopResultsForExam(exam.id, 20),
       resultCount: await getResultCountForExam(exam.id),
     })),
   )

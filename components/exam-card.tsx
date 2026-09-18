@@ -9,6 +9,7 @@ import {
   ChevronUp,
   Clock,
   Download,
+  Eye,
   FileText,
   Link2,
   Loader2,
@@ -58,6 +59,7 @@ export function ExamCard({
   const [resultsOpen, setResultsOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [selectedResult, setSelectedResult] = useState<ExamResult | null>(null)
   const [draftKey, setDraftKey] = useState<AnswerSheet>(exam.answerKey)
   const [saving, startSaving] = useTransition()
   const [deleting, startDeleting] = useTransition()
@@ -194,11 +196,12 @@ export function ExamCard({
                       <th className="px-3 py-2 font-medium">Họ và tên</th>
                       <th className="px-3 py-2 text-right font-medium">Số điểm</th>
                       <th className="px-3 py-2 text-right font-medium">Thời gian nộp</th>
+                      <th className="px-3 py-2 text-center font-medium">Chi tiết</th>
                     </tr>
                   </thead>
                   <tbody>
                     {results.map((r, i) => (
-                      <tr key={r.id} className="border-b border-border last:border-0">
+                      <tr key={r.id} className="border-b border-border last:border-0 hover:bg-muted/30">
                         <td className="px-3 py-2 tabular-nums text-muted-foreground">{i + 1}</td>
                         <td className="px-3 py-2 text-muted-foreground">{r.studentId}</td>
                         <td className="px-3 py-2 font-medium text-foreground">{r.studentName}</td>
@@ -209,6 +212,17 @@ export function ExamCard({
                         </td>
                         <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
                           {formatTime(r.submittedAt)}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setSelectedResult(r)}
+                            title="Xem chi tiết bài làm"
+                          >
+                            <Eye className="size-4 text-primary" />
+                          </Button>
                         </td>
                       </tr>
                     ))}
@@ -227,18 +241,53 @@ export function ExamCard({
         ) : null}
       </div>
 
-      {/* Dialog sửa đáp án */}
+      {/* Dialog xem chi tiết bài làm của học sinh */}
+      <Dialog open={!!selectedResult} onOpenChange={(open) => !open && setSelectedResult(null)}>
+<DialogContent className="!w-[95vw] !max-w-[1400px] h-[90vh] max-h-[90vh] flex flex-col p-6">
+  <DialogHeader className="shrink-0">
+    <DialogTitle>
+      Chi tiết bài làm — {selectedResult?.studentName} ({selectedResult?.studentId})
+    </DialogTitle>
+    <DialogDescription>
+      Điểm số: <span className="font-bold text-foreground">{selectedResult ? formatScore(selectedResult.score) : 0} điểm</span> — Nộp lúc: {selectedResult ? formatTime(selectedResult.submittedAt) : ""}
+    </DialogDescription>
+  </DialogHeader>
+  
+  {/* Phần nội dung bài làm mở rộng đầy đủ */}
+  <div className="flex-1 overflow-y-auto pr-2 my-2">
+    {selectedResult && (
+      <AnswerSheetForm
+        value={selectedResult.answers}
+        answerKey={exam.answerKey}
+        review={true}
+        disabled={true}
+      />
+    )}
+  </div>
+
+  <DialogFooter className="shrink-0">
+    <DialogClose render={<Button variant="outline">Đóng</Button>} />
+  </DialogFooter>
+</DialogContent>
+      </Dialog>
+
+{/* Dialog sửa đáp án */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
-          <DialogHeader>
+        <DialogContent className="!w-[95vw] !max-w-[1400px] h-[90vh] max-h-[90vh] flex flex-col p-6">
+          <DialogHeader className="shrink-0">
             <DialogTitle>Sửa đáp án — {exam.title}</DialogTitle>
             <DialogDescription>
               Thay đổi đáp án mẫu. Các bài đã chấm trước đó sẽ không tự cập nhật.
             </DialogDescription>
           </DialogHeader>
-          <AnswerSheetForm value={draftKey} onChange={setDraftKey} />
-          <DialogFooter>
-            <DialogClose render={<Button variant="outline" />}>Hủy</DialogClose>
+
+          {/* Phần form cuộn độc lập bên trong dialog */}
+          <div className="flex-1 overflow-y-auto pr-2 my-2">
+            <AnswerSheetForm value={draftKey} onChange={setDraftKey} />
+          </div>
+
+          <DialogFooter className="shrink-0">
+            <DialogClose render={<Button variant="outline">Hủy</Button>} />
             <Button onClick={saveKey} disabled={saving}>
               {saving && <Loader2 className="animate-spin" />}
               Lưu đáp án

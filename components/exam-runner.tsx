@@ -14,7 +14,6 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import {
   Dialog,
   DialogClose,
@@ -25,7 +24,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { AnswerSheetForm } from "@/components/answer-sheet"
-import { AnswerKeyDisplay } from "@/components/answer-key-display"
 import { submitExam } from "@/app/actions/exams"
 import { cn } from "@/lib/utils"
 import { emptyAnswerSheet, getAnswerSheetStructure, type AnswerSheet } from "@/lib/types"
@@ -50,16 +48,6 @@ function fmt(totalSeconds: number) {
   return h > 0 ? `${pad(h)}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`
 }
 
-// function PdfViewer({ url }: { url: string }) {
-//   return (
-//     <iframe
-//       src={`${url}#toolbar=1&view=FitH`}
-//       title="Đề thi PDF"
-//       className="h-full w-full border-0 bg-muted"
-//     />
-//   )
-// }
-
 function PdfViewer({ url }: { url: string }) {
   const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`
   
@@ -77,7 +65,6 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
   const structure = getAnswerSheetStructure(answerKey)
   const [phase, setPhase] = useState<Phase>("intro")
   const [studentName, setStudentName] = useState("")
-  const [studentId, setStudentId] = useState("")
   const [answers, setAnswers] = useState<AnswerSheet>(
     emptyAnswerSheet(structure, answerKey.examType ?? "standard"),
   )
@@ -100,7 +87,7 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
       submittedRef.current = true
       setSubmitting(true)
       try {
-        const res = await submitExam({ examId, studentName, studentId, answers })
+        const res = await submitExam({ examId, studentName, studentId: studentName, answers })
         setResult(res)
         setPhase("submitted")
         setMobileView("sheet")
@@ -115,7 +102,7 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
         setConfirmOpen(false)
       }
     },
-    [answers, examId, studentId, studentName],
+    [answers, examId, studentName],
   )
 
   // Đồng hồ đếm ngược
@@ -137,21 +124,13 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
   }, [phase, durationMinutes, doSubmit])
 
   function startExam() {
-    if (!studentName.trim()) {
-      toast.error("Vui lòng nhập họ và tên")
-      return
-    }
-    const id = studentId.trim()
+    const name = studentName.trim()
 
-    if (!id) {
-      toast.error("Vui lòng nhập mã số học sinh")
+    if (!name) {
+      toast.error("Vui lòng nhập họ và tên học sinh")
       return
     }
 
-    if (id.length != 4 && id.length != 6) {
-      toast.error("Mã số học sinh phải có 4 hoặc 6 ký tự.")
-      return
-    }
     setPhase("running")
   }
 
@@ -178,47 +157,20 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
               <li>Bài sẽ tự động nộp khi hết thời gian.</li>
             </ul>
           </div>
+
           <div className="mb-5">
-            {/* <Label htmlFor="student-id">Mã số học sinh</Label> */}
-            <Input
-              id="student-id"
-              type="text"
-              value={studentId}
-              onChange={(e) => setStudentId(e.target.value.toUpperCase())}
-              minLength={4}
-              maxLength={6}
-              onKeyDown={(e) => e.key === "Enter" && startExam()}
-              placeholder="Nhập mã số học sinh của bạn"
-              className="mt-1.5"
-              required
-            />
-          </div>
-          <div className="mb-5">
-            {/* <Label htmlFor="name">Họ và tên học sinh</Label> */}
             <Input
               id="name"
+              type="text"
               value={studentName}
               onChange={(e) => setStudentName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && startExam()}
               placeholder="Nhập họ và tên của bạn"
               className="mt-1.5"
               autoFocus
-            />
-          </div>
-
-          {/* <div className="mb-5">
-            <Label htmlFor="student-id">Mã số học sinh</Label>
-            <Input
-              id="student-id"
-              type="text"
-              value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && startExam()}
-              placeholder="Nhập mã số học sinh của bạn"
-              className="mt-1.5"
               required
             />
-          </div> */}
+          </div>
 
           <Button size="lg" className="w-full" onClick={startExam}>
             <Play />
@@ -289,36 +241,36 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
           )}
         >
           <div className="p-3 sm:p-4">
-{submitted && result ? (
-  <div className="flex flex-col gap-5">
-    <ResultsPanel
-      result={result}
-      studentName={studentName}
-    />
+            {submitted && result ? (
+              <div className="flex flex-col gap-5">
+                <ResultsPanel
+                  result={result}
+                  studentName={studentName}
+                />
 
-    <div>
-      <div className="mb-3 flex items-center gap-2">
-        <ListChecks className="size-5 text-primary" />
-        <h2 className="font-bold text-foreground">
-          Phiếu trả lời
-        </h2>
-      </div>
+                <div>
+                  <div className="mb-3 flex items-center gap-2">
+                    <ListChecks className="size-5 text-primary" />
+                    <h2 className="font-bold text-foreground">
+                      Phiếu trả lời
+                    </h2>
+                  </div>
 
-      <AnswerSheetForm
-        value={answers}
-        disabled={true}
-        review={true}
-        answerKey={result.answerKey}
-      />
-    </div>
-  </div>
-) : (
-  <AnswerSheetForm
-    value={answers}
-    onChange={setAnswers}
-    disabled={submitting}
-  />
-)}
+                  <AnswerSheetForm
+                    value={answers}
+                    disabled={true}
+                    review={true}
+                    answerKey={result.answerKey}
+                  />
+                </div>
+              </div>
+            ) : (
+              <AnswerSheetForm
+                value={answers}
+                onChange={setAnswers}
+                disabled={submitting}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -355,7 +307,7 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <DialogClose render={<Button variant="outline" />}>Tiếp tục làm</DialogClose>
+            <DialogClose render={<Button variant="outline">Tiếp tục làm</Button>} />
             <Button onClick={() => doSubmit(false)} disabled={submitting}>
               {submitting && <Loader2 className="animate-spin" />}
               Nộp bài
@@ -378,41 +330,6 @@ function ScoreRow({ label, value, max }: { label: string; value: number; max: nu
   )
 }
 
-// function ResultsPanel({
-//   result,
-//   answers,
-//   studentName,
-// }: {
-//   result: { breakdown: GradeBreakdown; answerKey: AnswerSheet }
-//   answers: AnswerSheet
-//   studentName: string
-// }) {
-//   const { breakdown, answerKey } = result
-//   return (
-//     <div className="flex flex-col gap-5">
-//       {/* Bảng điểm */}
-//       <div className="rounded-xl border border-border bg-card p-5 text-center">
-//         <p className="text-sm text-muted-foreground">{studentName}</p>
-//         <p className="mt-1 text-5xl font-extrabold tabular-nums text-primary">
-//           {breakdown.total}
-//         </p>
-//         <p className="text-sm text-muted-foreground">/ 10 điểm</p>
-//         <div className="mt-4 text-left">
-//           <ScoreRow label="Phần I (Trắc nghiệm)" value={breakdown.part1} max={breakdown.part1Max ?? 3} />
-//           <ScoreRow label="Phần II (Đúng/Sai)" value={breakdown.part2} max={breakdown.part2Max ?? 4} />
-//           <ScoreRow label="Phần III (Điền đáp số)" value={breakdown.part3} max={breakdown.part3Max ?? 3} />
-//         </div>
-//       </div>
-
-//       {/* Đáp án chi tiết để đối chiếu */}
-//       <div className="rounded-xl border border-border bg-card p-4">
-//         <h3 className="mb-3 font-bold text-foreground">Đáp án chi tiết</h3>
-//         <AnswerKeyDisplay answerKey={answerKey} student={answers} />
-//       </div>
-//     </div>
-//   )
-// }
-
 function ResultsPanel({
   result,
   studentName,
@@ -425,7 +342,7 @@ function ResultsPanel({
   return (
     <div className="flex flex-col gap-5">
       <div className="rounded-xl border border-border bg-card p-5 text-center">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm font-semibold text-muted-foreground">
           {studentName}
         </p>
 
