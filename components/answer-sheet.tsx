@@ -18,6 +18,8 @@ interface AnswerSheetFormProps {
   value: AnswerSheet
   onChange?: (value: AnswerSheet) => void
   disabled?: boolean
+  review?: boolean
+  answerKey?: AnswerSheet
 }
 
 function Bubble({
@@ -26,27 +28,39 @@ function Bubble({
   onClick,
   disabled,
   size = "md",
+  review = false,
+  correct = false,
+  wrong = false,
 }: {
   label: string
   selected: boolean
   onClick: () => void
   disabled?: boolean
   size?: "sm" | "md"
+  review?: boolean
+  correct?: boolean
+  wrong?: boolean
 }) {
   return (
     <button
       type="button"
       aria-pressed={selected}
-      disabled={disabled}
+      disabled={disabled || review}
       onClick={onClick}
       className={cn(
-        "flex shrink-0 items-center justify-center rounded-full border font-semibold transition-colors",
+        "relative flex shrink-0 items-center justify-center rounded-full border font-semibold transition-colors",
         size === "md" ? "size-8 text-sm" : "size-6 text-xs",
-        selected
-          ? "border-primary bg-primary text-primary-foreground shadow-sm"
-          : "border-border bg-card text-muted-foreground",
-        !disabled && !selected && "hover:border-primary/60 hover:bg-accent",
-        disabled && "cursor-default",
+
+        // Review mode
+        review && correct && "border-emerald-600 bg-emerald-500 text-white shadow-sm font-bold",
+        review && wrong && "border-rose-600 bg-rose-500 text-white shadow-sm font-bold",
+        review && !correct && !wrong && "border-border bg-card text-muted-foreground/50 opacity-60",
+
+        // Normal mode
+        !review && selected && "border-primary bg-primary text-primary-foreground shadow-sm",
+        !review && !selected && "border-border bg-card text-muted-foreground",
+        !disabled && !review && !selected && "hover:border-primary/60 hover:bg-accent",
+        disabled && "cursor-default"
       )}
     >
       {label}
@@ -68,15 +82,36 @@ function SectionTitle({ no, title, points }: { no: string; title: string; points
   )
 }
 
-export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormProps) {
+export function AnswerSheetForm({
+  value,
+  onChange,
+  disabled,
+  review = false,
+  answerKey,
+}: AnswerSheetFormProps) {
   const emit = (next: AnswerSheet) => onChange?.(next)
   const structure = getAnswerSheetStructure(value)
   const part2Start = structure.multipleChoiceCount
-  const part3Start =
-    structure.multipleChoiceCount + structure.trueFalseCount
+  const part3Start = structure.multipleChoiceCount + structure.trueFalseCount
   const totalUnits = totalScoringUnits(structure)
   const unitScore = totalUnits > 0 ? 10 / totalUnits : 0
   const isCustom = value.examType === "custom"
+
+  // Kiểm tra đúng/sai
+  const isPart1Correct = (q: number, opt: string) => review && answerKey?.part1[q] === opt
+  const isPart1Wrong = (q: number, opt: string) =>
+    review && value.part1[q] === opt && answerKey?.part1[q] !== opt
+
+  const isPart2Correct = (q: number, sub: number, choice: boolean) =>
+    review && answerKey?.part2[q]?.[sub] === choice
+  const isPart2Wrong = (q: number, sub: number, choice: boolean) =>
+    review && value.part2[q]?.[sub] === choice && answerKey?.part2[q]?.[sub] !== choice
+
+  const isPart3DigitCorrect = (q: number, col: number) =>
+    review && value.part3[q]?.[col] && value.part3[q][col] === answerKey?.part3[q]?.[col]
+  const isPart3DigitWrong = (q: number, col: number) =>
+    review && value.part3[q]?.[col] && value.part3[q][col] !== answerKey?.part3[q]?.[col]
+
   const part1Points = isCustom
     ? `${(structure.multipleChoiceCount * unitScore).toFixed(2).replace(/0$/u, "").replace(/\.$/u, "")} điểm`
     : "3 điểm"
@@ -101,8 +136,6 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
     emit({ ...value, part2 })
   }
 
-  
-
   const setPart3 = (q: number, col: number, char: string) => {
     if (disabled) return
     const part3 = value.part3.map((row) => [...row])
@@ -119,12 +152,9 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
           title={`Trắc nghiệm nhiều lựa chọn (${structure.multipleChoiceCount} câu)`}
           points={part1Points}
         />
-        {/* <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2"> */}
-        {/* <div className="columns-1 gap-x-6 sm:columns-2"> */}
         <div className="columns-1 gap-x-6 sm:columns-2 xl:columns-3">
           {Array.from({ length: structure.multipleChoiceCount }).map((_, q) => (
-            // <div key={q} className="flex items-center gap-3 rounded-lg px-1 py-1">
-            <div key={q} className="flex break-inside-avoid items-center gap-3 rounded-lg px-1 py-1 mb-2">
+            <div key={q} className="mb-2 flex break-inside-avoid items-center gap-3 rounded-lg px-1 py-1">
               <span className="w-6 shrink-0 text-right text-sm font-bold tabular-nums text-foreground">
                 {q + 1}
               </span>
@@ -135,7 +165,10 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
                     label={opt}
                     selected={value.part1[q] === opt}
                     onClick={() => setPart1(q, opt)}
-                    disabled={disabled}
+                    disabled={disabled || review}
+                    review={review}
+                    correct={isPart1Correct(q, opt)}
+                    wrong={isPart1Wrong(q, opt)}
                   />
                 ))}
               </div>
@@ -151,16 +184,7 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
           title={`Trắc nghiệm Đúng / Sai (${structure.trueFalseCount} câu)`}
           points={part2Points}
         />
-        {/* <div className="grid grid-cols-1 gap-4 lg:grid-cols-4"> */}
-        <div className="
-            grid
-            gap-3
-            grid-cols-2
-            sm:grid-cols-3
-            md:grid-cols-3
-            xl:grid-cols-4
-            2xl:grid-cols-4
-        ">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
           {Array.from({ length: structure.trueFalseCount }).map((_, q) => (
             <div key={q} className="rounded-lg border border-border p-3">
               <p className="mb-2 text-sm font-semibold text-foreground">Câu {part2Start + q + 1}</p>
@@ -169,36 +193,32 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
                   <div key={sub} className="flex items-center justify-between gap-2">
                     <span className="text-sm text-muted-foreground">{PART2_LABELS[sub]})</span>
                     <div className="flex gap-2">
-                      <button
-                        type="button"
-                        disabled={disabled}
-                        aria-pressed={value.part2[q][sub] === true}
-                        onClick={() => setPart2(q, sub, true)}
-                        className={cn(
-                          "rounded-md border px-3 py-1 text-xs font-semibold transition-colors",
-                          value.part2[q][sub] === true
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border bg-card text-muted-foreground hover:bg-accent",
-                          disabled && "cursor-default",
-                        )}
-                      >
-                        Đ
-                      </button>
-                      <button
-                        type="button"
-                        disabled={disabled}
-                        aria-pressed={value.part2[q][sub] === false}
-                        onClick={() => setPart2(q, sub, false)}
-                        className={cn(
-                          "rounded-md border px-3 py-1 text-xs font-semibold transition-colors",
-                          value.part2[q][sub] === false
-                            ? "border-destructive bg-destructive/15 text-destructive"
-                            : "border-border bg-card text-muted-foreground hover:bg-accent",
-                          disabled && "cursor-default",
-                        )}
-                      >
-                        S
-                      </button>
+                      {[
+                        { label: "Đ", val: true },
+                        { label: "S", val: false },
+                      ].map((item) => {
+                        const correct = isPart2Correct(q, sub, item.val)
+                        const wrong = isPart2Wrong(q, sub, item.val)
+                        return (
+                          <button
+                            key={item.label}
+                            type="button"
+                            disabled={disabled || review}
+                            onClick={() => setPart2(q, sub, item.val)}
+                            className={cn(
+                              "relative rounded-md border px-3 py-1 text-xs font-semibold transition-colors",
+                              review && correct && "border-emerald-600 bg-emerald-500 text-white font-bold",
+                              review && wrong && "border-rose-600 bg-rose-500 text-white font-bold",
+                              review && !correct && !wrong && "border-border bg-card text-muted-foreground/50 opacity-60",
+                              !review && value.part2[q][sub] === item.val && "border-primary bg-primary text-primary-foreground",
+                              !review && value.part2[q][sub] !== item.val && "border-border bg-card text-muted-foreground hover:bg-accent",
+                              disabled && "cursor-default"
+                            )}
+                          >
+                            {item.label}
+                          </button>
+                        )
+                      })}
                     </div>
                   </div>
                 ))}
@@ -216,52 +236,76 @@ export function AnswerSheetForm({ value, onChange, disabled }: AnswerSheetFormPr
           points={part3Points}
         />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: structure.shortAnswerCount }).map((_, q) => (
-            <div key={q} className="rounded-lg border border-border p-3">
-              <p className="mb-2 text-sm font-semibold text-foreground">Câu {part3Start + q + 1}</p>
-              <div className="flex gap-2">
-                {Array.from({ length: PART3_MAX_CHARS }).map((_, col) => {
-                  const special = col === 0 ? "-" : col === 1 ? "," : null
-                  const current = value.part3[q]?.[col] ?? ""
-                  return (
-                    <div key={col} className="flex flex-1 flex-col items-center gap-1">
-                      {/* ô hiển thị ký tự đã chọn */}
-                      <div
-                        className={cn(
-                          "flex h-7 w-full items-center justify-center rounded-md border text-sm font-bold",
-                          current
-                            ? "border-primary bg-primary/10 text-foreground"
-                            : "border-dashed border-border text-muted-foreground/40",
-                        )}
-                      >
-                        {current || "·"}
-                      </div>
-                      {special && (
-                        <Bubble
-                          label={special}
-                          size="sm"
-                          selected={current === special}
-                          onClick={() => setPart3(q, col, special)}
-                          disabled={disabled}
-                        />
-                      )}
-                      {!special && <div className="h-6" aria-hidden />}
-                      {DIGITS.map((d) => (
-                        <Bubble
-                          key={d}
-                          label={d}
-                          size="sm"
-                          selected={current === d}
-                          onClick={() => setPart3(q, col, d)}
-                          disabled={disabled}
-                        />
-                      ))}
+          {Array.from({ length: structure.shortAnswerCount }).map((_, q) => {
+            const correctAnswerStr = answerKey?.part3[q]?.join("") || ""
+            return (
+              <div key={q} className="rounded-lg border border-border p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-sm font-semibold text-foreground">Câu {part3Start + q + 1}</p>
+                  {/* HIỂN THỊ ĐÁP ÁN CHUẨN Ở TRÊN CÙNG KHI REVIEW */}
+                  {review && (
+                    <div className="text-xs font-medium text-emerald-700 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded">
+                      Đáp án: <span className="font-bold">{correctAnswerStr || "Chưa có"}</span>
                     </div>
-                  )
-                })}
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  {Array.from({ length: PART3_MAX_CHARS }).map((_, col) => {
+                    const special = col === 0 ? "-" : col === 1 ? "," : null
+                    const current = value.part3[q]?.[col] ?? ""
+                    const correctDigit = isPart3DigitCorrect(q, col)
+                    const wrongDigit = isPart3DigitWrong(q, col)
+
+                    return (
+                      <div key={col} className="flex flex-1 flex-col items-center gap-1">
+                        {/* Ô hiển thị kết quả điền */}
+                        <div
+                          className={cn(
+                            "flex h-7 w-full items-center justify-center rounded-md border text-sm font-bold transition-colors",
+                            !review && current && "border-primary bg-primary/10 text-foreground",
+                            !review && !current && "border-dashed border-border text-muted-foreground/40",
+                            review && correctDigit && "border-emerald-600 bg-emerald-500 text-white",
+                            review && wrongDigit && "border-rose-600 bg-rose-500 text-white",
+                            review && !current && "border-dashed border-rose-300 bg-rose-50 text-rose-300"
+                          )}
+                        >
+                          {current || "·"}
+                        </div>
+
+                        {special && (
+                          <Bubble
+                            label={special}
+                            size="sm"
+                            selected={current === special}
+                            onClick={() => setPart3(q, col, special)}
+                            disabled={disabled || review}
+                            review={review}
+                            correct={review && answerKey?.part3[q]?.[col] === special}
+                            wrong={review && current === special && answerKey?.part3[q]?.[col] !== special}
+                          />
+                        )}
+                        {!special && <div className="h-6" aria-hidden />}
+                        {DIGITS.map((d) => (
+                          <Bubble
+                            key={d}
+                            label={d}
+                            size="sm"
+                            selected={current === d}
+                            onClick={() => setPart3(q, col, d)}
+                            disabled={disabled || review}
+                            review={review}
+                            correct={review && answerKey?.part3[q]?.[col] === d}
+                            wrong={review && current === d && answerKey?.part3[q]?.[col] !== d}
+                          />
+                        ))}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </section>
     </div>

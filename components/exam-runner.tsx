@@ -289,17 +289,36 @@ export function ExamRunner({ examId, title, pdfUrl, durationMinutes, answerKey }
           )}
         >
           <div className="p-3 sm:p-4">
-            {submitted && result ? (
-              <ResultsPanel result={result} studentName={studentName} />
-            ) : (
-              <>
-                <div className="mb-3 flex items-center gap-2">
-                  <ListChecks className="size-5 text-primary" />
-                  <h2 className="font-bold text-foreground">Phiếu trả lời</h2>
-                </div>
-                <AnswerSheetForm value={answers} onChange={setAnswers} disabled={submitting} />
-              </>
-            )}
+{submitted && result ? (
+  <div className="flex flex-col gap-5">
+    <ResultsPanel
+      result={result}
+      studentName={studentName}
+    />
+
+    <div>
+      <div className="mb-3 flex items-center gap-2">
+        <ListChecks className="size-5 text-primary" />
+        <h2 className="font-bold text-foreground">
+          Phiếu trả lời
+        </h2>
+      </div>
+
+      <AnswerSheetForm
+        value={answers}
+        disabled={true}
+        review={true}
+        answerKey={result.answerKey}
+      />
+    </div>
+  </div>
+) : (
+  <AnswerSheetForm
+    value={answers}
+    onChange={setAnswers}
+    disabled={submitting}
+  />
+)}
           </div>
         </div>
       </div>
@@ -402,19 +421,40 @@ function ResultsPanel({
   studentName: string
 }) {
   const { breakdown } = result
+
   return (
     <div className="flex flex-col gap-5">
-      {/* Bảng điểm */}
       <div className="rounded-xl border border-border bg-card p-5 text-center">
-        <p className="text-sm text-muted-foreground">{studentName}</p>
+        <p className="text-sm text-muted-foreground">
+          {studentName}
+        </p>
+
         <p className="mt-1 text-5xl font-extrabold tabular-nums text-primary">
           {breakdown.total}
         </p>
-        <p className="text-sm text-muted-foreground">/ 10 điểm</p>
+
+        <p className="text-sm text-muted-foreground">
+          / 10 điểm
+        </p>
+
         <div className="mt-4 text-left">
-          <ScoreRow label="Phần I (Trắc nghiệm)" value={breakdown.part1} max={breakdown.part1Max ?? 3} />
-          <ScoreRow label="Phần II (Đúng/Sai)" value={breakdown.part2} max={breakdown.part2Max ?? 4} />
-          <ScoreRow label="Phần III (Điền đáp số)" value={breakdown.part3} max={breakdown.part3Max ?? 3} />
+          <ScoreRow
+            label="Phần I (Trắc nghiệm)"
+            value={breakdown.part1}
+            max={breakdown.part1Max ?? 3}
+          />
+
+          <ScoreRow
+            label="Phần II (Đúng/Sai)"
+            value={breakdown.part2}
+            max={breakdown.part2Max ?? 4}
+          />
+
+          <ScoreRow
+            label="Phần III (Điền đáp số)"
+            value={breakdown.part3}
+            max={breakdown.part3Max ?? 3}
+          />
         </div>
       </div>
     </div>
