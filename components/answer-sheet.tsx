@@ -252,7 +252,7 @@ export function AnswerSheetForm({
 
                 <div className="flex gap-2">
                   {Array.from({ length: PART3_MAX_CHARS }).map((_, col) => {
-                    const special = col === 0 ? "-" : col === 1 ? "," : null
+                    const special = col === 0 ? "-" : col === 1 || col === 2 ? "," : null
                     const current = value.part3[q]?.[col] ?? ""
                     const correctDigit = isPart3DigitCorrect(q, col)
                     const wrongDigit = isPart3DigitWrong(q, col)
