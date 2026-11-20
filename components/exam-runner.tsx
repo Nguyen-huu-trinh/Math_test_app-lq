@@ -49,15 +49,57 @@ function fmt(totalSeconds: number) {
 }
 
 function PdfViewer({ url }: { url: string }) {
-  const googleViewerUrl = `https://docs.google.com/gview?url=${encodeURIComponent(url)}&embedded=true`
-  
+  const [attempt, setAttempt] = useState(0)
+  const [source, setSource] = useState<string | null>(null)
+  const [failed, setFailed] = useState(false)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    let objectUrl: string | undefined
+    setSource(null)
+    setFailed(false)
+
+    async function loadPdf() {
+      try {
+        const response = await fetch(url, { signal: controller.signal })
+        if (!response.ok) throw new Error("PDF unavailable")
+        const file = await response.blob()
+        if (!file.size) throw new Error("Empty PDF")
+        if (controller.signal.aborted) return
+        objectUrl = URL.createObjectURL(file.slice(0, file.size, "application/pdf"))
+        setSource(objectUrl)
+      } catch {
+        if (!controller.signal.aborted) setFailed(true)
+      }
+    }
+
+    void loadPdf()
+    return () => {
+      controller.abort()
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [url, attempt])
+
   return (
-    <iframe
-      src={googleViewerUrl}
-      title="Đề thi PDF"
-      className="h-full w-full border-0 bg-muted"
-      frameBorder="0"
-    />
+    <div className="flex h-full flex-col bg-muted">
+      <div className="flex shrink-0 justify-end gap-4 border-b bg-card px-3 py-2 text-sm">
+        <button type="button" onClick={() => setAttempt((value) => value + 1)}>
+          Tải lại đề
+        </button>
+        <a href={url} target="_blank" rel="noopener noreferrer" className="underline">
+          Mở PDF ở tab mới
+        </a>
+      </div>
+      {source ? (
+        <object data={source} type="application/pdf" aria-label="Đề thi PDF" className="min-h-0 w-full flex-1">
+          <p className="p-4 text-sm">Trình duyệt này cần mở đề ở tab mới để xem PDF.</p>
+        </object>
+      ) : (
+        <p role="status" className="m-auto p-4 text-center text-sm">
+          {failed ? "Không tải được đề thi. Bạn có thể tải lại đề hoặc mở PDF ở tab mới." : "Đang tải đề thi…"}
+        </p>
+      )}
+    </div>
   )
 }
 
